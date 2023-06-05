@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <title>花费图表</title>
+</head>
+<link href="{% static 'css/bootstrap.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/bootstrap-datepicker.css' %}" rel="stylesheet">
+<script src="{% static 'js/echarts.min.js' %}"></script>
+<style>
+    .box{
+        display: flex;
+    }
+    #chart{
+        width: 800px;
+        height: 600px;
+        margin: auto;
+    }
+</style>
+<body>
+<div class="jumbotron">
+  <h1>总计:</h1>
+  <h2 id="content">dadad</h2>
+  <p><a class="btn btn-primary btn-lg" href="/entry_list/" role="button">返回</a></p>
+</div>
+<div class="box">
+    <div id="chart"></div>
+</div>
+<h2 class="col-xs-6 text-right"><a href="/entry_list/" class="btn btn-primary">返回</a></h2>
+</body>
+ <script type="text/javascript">
+        let time = {{ times|safe }}   // 从 Django 模板变量获取数据 将模板中的 data 变量的值赋给 JavaScript 的 data 变量，并通过 safe 过滤器确保数据不会被转义。
+        let account = {{ accounts|safe }}
+        {#console.log(time)#}
+        {#console.log(time[0])#}
+        {#console.log(account)#}
+        let sum = account.reduce(function(acc, current) {
+            return acc + current;
+        }, 0);
+        var content = document.getElementById('content');
+        if(sum>=0){
+            content.innerHTML = '从'+time[0]+'到'+time[time.length-1]+'    你盈余:  '+sum;
+        }
+        else
+            content.innerHTML = '从'+time[0]+'到'+time[time.length-1]+'    你入不敷出:  '+sum;
+        // 初始化图表实例
+        let chart = echarts.init(document.getElementById('chart'));
+
+        // 构造 x 轴和 y 轴数据
+        let xAxisData = [];
+        let yAxisData = [];
+        for (let i = 0; i < time.length; i++) {
+            xAxisData.push(time[i]);
+            yAxisData.push(account[i]);
+        }
+
+        {#console.log(xAxisData)#}
+        {#console.log(yAxisData)#}
+        // 配置图表选项
+        let option = {
+            title: {
+                text: '收入支出图表',
+            },
+            xAxis: {
+                type: 'category',
+                data: xAxisData,
+                axisTick: {
+                    alignWithLabel: true
+                }
+            },
+            yAxis: {
+                   type: 'value'
+               },
+            series: [
+                {
+                    name: '花费',
+                    type: 'bar',
+                    data: yAxisData,
+                    barWidth: '50%',
+                    barCategoryGap: '10%',
+                    itemStyle: {
+                        normal: {
+                            color: function(params) {
+                            // 根据数值的正负设置颜色
+                            return params.value >= 0 ? '#73b9bc' : '#e69d87';
+                            }
+                        }
+                     }
+                }
+            ]
+        };
+
+           // 使用配置项设置图表
+           chart.setOption(option);
+ </script>
+
+</html>
